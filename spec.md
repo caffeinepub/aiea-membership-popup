@@ -1,27 +1,25 @@
 # AIEA Membership Popup
 
 ## Current State
-Full landing page with hero, stats, about, benefits, programs, CTA banner, and contact sections. Membership popup with timed/scroll triggers.
+The app has a complaint submission system where visitors can submit complaints with name, phone, subject, message, and optional image. Complaints are stored in the backend via `submitComplaint` and retrievable via `getComplaints`.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Complaint/Feedback box section on the landing page (visible in nav and page)
-- Form fields: Name, Phone, Subject, Message (text area)
-- Image upload field (attach photo evidence)
-- Backend storage for complaints with uploaded images via blob-storage
-- Success/error state feedback after submission
-- "Complaint" nav link pointing to the new section
+- Admin page/view accessible via a secret/password-protected route or simple password gate
+- Displays all submitted complaints in a list/table with name, phone, subject, message, timestamp, and image (if any)
+- Nav link or hidden access route for admin
 
 ### Modify
-- Nav links to include "Complaint" entry
-- Backend to store complaint records (name, phone, subject, message, imageUrl, timestamp)
+- App.tsx: add routing or conditional rendering for admin view
+- Navigation: add an admin link (or keep it hidden/accessible via URL)
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Select blob-storage component
-2. Generate Motoko backend with submitComplaint and getComplaints APIs
-3. Add ComplaintBox component to frontend with form + image upload
-4. Add section to App.tsx and nav link
+1. Create `AdminPage` component that fetches and displays all complaints from `getComplaints`
+2. Add simple password gate (hardcoded password prompt) to protect admin view
+3. Add route `/admin` or toggle via URL hash `#admin`
+4. Display complaints in a card/table layout with all fields and image thumbnail
+5. Add discreet Admin link in footer

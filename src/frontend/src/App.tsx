@@ -10,7 +10,8 @@ import {
   Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AdminPage from "./components/AdminPage";
 import ComplaintBox from "./components/ComplaintBox";
 import MembershipPopup from "./components/MembershipPopup";
 
@@ -65,8 +66,23 @@ const stats = [
   { value: "15 Yrs", label: "Of Advocacy" },
 ];
 
+function useHash() {
+  const [hash, setHash] = useState(() => window.location.hash);
+  useEffect(() => {
+    const handler = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", handler);
+    return () => window.removeEventListener("hashchange", handler);
+  }, []);
+  return hash;
+}
+
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const hash = useHash();
+
+  if (hash === "#admin") {
+    return <AdminPage />;
+  }
 
   return (
     <div className="min-h-screen font-poppins bg-white">
@@ -540,17 +556,26 @@ export default function App() {
               All India Electrician Association
             </span>
           </div>
-          <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()}. Built with ❤️ using{" "}
+          <div className="flex items-center gap-4">
             <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 transition-colors"
+              href="#admin"
+              className="text-xs text-gray-300 hover:text-gray-400 transition-colors"
+              data-ocid="footer.admin.link"
             >
-              caffeine.ai
+              Admin
             </a>
-          </p>
+            <p className="text-xs text-gray-400">
+              © {new Date().getFullYear()}. Built with ❤️ using{" "}
+              <a
+                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                caffeine.ai
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
     </div>

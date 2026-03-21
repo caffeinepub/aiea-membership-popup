@@ -6,10 +6,10 @@ import Nat "mo:core/Nat";
 import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
-import Migration "migration";
+
 
 // with clause for stable to stable migration
-(with migration = Migration.run)
+
 actor {
   // Include persistent storage logic
   include MixinStorage();
