@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.875rem;
+
+    /* Navy palette (#0B1D2E → oklch ≈ 0.18 0.05 236) */
+    --background: 0.18 0.05 236;
+    --foreground: 0.97 0.01 236;
+    --card: 0.2 0.055 236;
+    --card-foreground: 0.97 0.01 236;
+    --popover: 0.16 0.048 236;
+    --popover-foreground: 0.97 0.01 236;
+
+    /* Gold (#F2B233 → oklch ≈ 0.78 0.16 70) */
+    --primary: 0.78 0.16 70;
+    --primary-foreground: 0.14 0.02 236;
+
+    --secondary: 0.24 0.055 236;
+    --secondary-foreground: 0.97 0.01 236;
+    --muted: 0.22 0.04 236;
+    --muted-foreground: 0.7 0.03 236;
+    --accent: 0.78 0.16 70;
+    --accent-foreground: 0.14 0.02 236;
+    --destructive: 0.577 0.245 27;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.3 0.04 236;
+    --input: 0.3 0.04 236;
+    --ring: 0.78 0.16 70;
+
+    --chart-1: 0.78 0.16 70;
+    --chart-2: 0.6 0.118 184;
+    --chart-3: 0.398 0.07 227;
+    --chart-4: 0.828 0.189 84;
+    --chart-5: 0.769 0.188 70;
+
+    --sidebar: 0.16 0.048 236;
+    --sidebar-foreground: 0.97 0.01 236;
+    --sidebar-primary: 0.78 0.16 70;
+    --sidebar-primary-foreground: 0.14 0.02 236;
+    --sidebar-accent: 0.24 0.055 236;
+    --sidebar-accent-foreground: 0.97 0.01 236;
+    --sidebar-border: 0.3 0.04 236;
+    --sidebar-ring: 0.78 0.16 70;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-poppins;
+  }
+}
+
+@layer utilities {
+  .gold-glow {
+    box-shadow: 0 0 24px oklch(0.78 0.16 70 / 0.35);
+  }
+  .modal-shadow {
+    box-shadow: 0 24px 80px oklch(0 0 0 / 0.65), 0 0 0 1.5px
+      oklch(0.78 0.16 70 / 0.6);
+  }
+}
