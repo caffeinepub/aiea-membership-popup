@@ -127,7 +127,7 @@ export default function MembershipPopup() {
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
                   <img
-                    src="/assets/uploads/IMG_20260321_231245-1.png"
+                    src="/assets/uploads/IMG_20260321_231245-1-1.png"
                     alt="All India Electrician Association"
                     className="h-12 w-auto object-contain"
                   />

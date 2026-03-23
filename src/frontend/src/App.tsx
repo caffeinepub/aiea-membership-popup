@@ -101,7 +101,7 @@ export default function App() {
             data-ocid="nav.link"
           >
             <img
-              src="/assets/uploads/IMG_20260321_231245-1.png"
+              src="/assets/uploads/IMG_20260321_231245-1-1.png"
               alt="AIEA Logo"
               className="h-10 w-auto object-contain"
             />
@@ -344,6 +344,37 @@ export default function App() {
           </div>
         </section>
 
+        {/* Rate Card */}
+        <section className="py-16 px-4 bg-gray-50">
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-gray-200" />
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-700">
+                  Government Rate List
+                </span>
+                <div className="h-px flex-1 bg-gray-200" />
+              </div>
+              <p className="text-center text-sm text-gray-500 mb-6">
+                Official electrician rates for Tier 3 cities as per legal
+                government standards
+              </p>
+              <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+                <img
+                  src="/assets/uploads/IMG_20260323_141939-1.png"
+                  alt="Electrical Wiring & Installation Rate Card - Tier 3 Cities"
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Benefits */}
         <section id="benefits" className="py-20 px-4 bg-gray-50">
           <div className="max-w-6xl mx-auto">
@@ -548,7 +579,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
-              src="/assets/uploads/IMG_20260321_231245-1.png"
+              src="/assets/uploads/IMG_20260321_231245-1-1.png"
               alt="AIEA"
               className="h-8 w-auto object-contain"
             />
