@@ -20,6 +20,19 @@ export interface Complaint {
   'phone' : string,
 }
 export type ExternalBlob = Uint8Array;
+export interface LicenseApplication {
+  'id' : bigint,
+  'dob' : string,
+  'licenceType' : string,
+  'fullName' : string,
+  'email' : string,
+  'district' : string,
+  'state' : string,
+  'address' : string,
+  'timestamp' : Time,
+  'mobile' : string,
+  'photo' : [] | [ExternalBlob],
+}
 export type Time = bigint;
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
@@ -51,10 +64,25 @@ export interface _SERVICE {
   'getAssociationInfo' : ActorMethod<[], string>,
   'getComplaints' : ActorMethod<[], Array<Complaint>>,
   'getFaqs' : ActorMethod<[], Array<string>>,
+  'getLicenseApplications' : ActorMethod<[], Array<LicenseApplication>>,
   'getMembershipFormUrl' : ActorMethod<[], string>,
   'getServices' : ActorMethod<[], Array<string>>,
   'submitComplaint' : ActorMethod<
     [string, string, string, string, [] | [ExternalBlob]],
+    bigint
+  >,
+  'submitLicenseApplication' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      [] | [ExternalBlob],
+    ],
     bigint
   >,
 }

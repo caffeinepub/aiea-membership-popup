@@ -13,6 +13,8 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import AdminPage from "./components/AdminPage";
 import ComplaintBox from "./components/ComplaintBox";
+import LicenseApplicationForm from "./components/LicenseApplicationForm";
+import LicenseGuide from "./components/LicenseGuide";
 import MembershipPopup from "./components/MembershipPopup";
 
 const MEMBERSHIP_FORM_URL =
@@ -22,6 +24,8 @@ const navLinks = [
   { label: "About", href: "#about" },
   { label: "Benefits", href: "#benefits" },
   { label: "Programs", href: "#programs" },
+  { label: "Licence Guide", href: "#license" },
+  { label: "Apply Licence", href: "#apply-licence" },
   { label: "Complaint", href: "#complaint" },
   { label: "Contact", href: "#contact" },
 ];
@@ -88,6 +92,17 @@ export default function App() {
     <div className="min-h-screen font-poppins bg-white">
       <MembershipPopup />
 
+      {/* Top Name Banner */}
+      <div
+        className="w-full py-3 text-center"
+        style={{ background: "#1d4ed8" }}
+        data-ocid="banner.section"
+      >
+        <p className="text-white font-extrabold tracking-widest uppercase text-sm sm:text-base md:text-lg">
+          ALL INDIA ELECTRICIAN ASSOCIATION
+        </p>
+      </div>
+
       {/* Header */}
       <header
         className="sticky top-0 z-40 border-b bg-white shadow-sm"
@@ -119,12 +134,12 @@ export default function App() {
           </a>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-5">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-gray-600 hover:text-blue-700 transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-blue-700 transition-colors whitespace-nowrap"
                 data-ocid="nav.link"
               >
                 {link.label}
@@ -134,7 +149,7 @@ export default function App() {
               href={MEMBERSHIP_FORM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all hover:brightness-110"
+              className="px-5 py-2 rounded-lg text-sm font-bold text-white transition-all hover:brightness-110 whitespace-nowrap"
               style={{ background: "#1d4ed8" }}
               data-ocid="nav.primary_button"
             >
@@ -493,6 +508,10 @@ export default function App() {
             </div>
           </div>
         </section>
+
+        {/* Licence Guide & Application Form */}
+        <LicenseGuide />
+        <LicenseApplicationForm />
 
         {/* CTA Banner */}
         <section

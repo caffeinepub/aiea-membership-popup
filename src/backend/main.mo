@@ -6,10 +6,10 @@ import Nat "mo:core/Nat";
 import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
-
+import Migration "migration"; // Migration module for upgrades
 
 // with clause for stable to stable migration
-
+(with migration = Migration.run)
 actor {
   // Include persistent storage logic
   include MixinStorage();
@@ -61,7 +61,7 @@ actor {
     faqs.toArray();
   };
 
-  // Active complaints storage
+  // Complaint Handling
   var nextComplaintId = 0;
   let complaints = Map.empty<Nat, Complaint>();
 
@@ -83,5 +83,47 @@ actor {
 
   public shared ({ caller }) func getComplaints() : async [Complaint] {
     complaints.values().toArray();
+  };
+
+  // License Application Handling
+  type LicenseApplication = {
+    id : Nat;
+    fullName : Text;
+    mobile : Text;
+    email : Text;
+    dob : Text;
+    licenceType : Text;
+    address : Text;
+    district : Text;
+    state : Text;
+    timestamp : Time.Time;
+    photo : ?Storage.ExternalBlob;
+  };
+
+  var nextLicenseId = 0;
+  let licenseApplications = Map.empty<Nat, LicenseApplication>();
+
+  public shared ({ caller }) func submitLicenseApplication(fullName : Text, mobile : Text, email : Text, dob : Text, licenceType : Text, address : Text, district : Text, state : Text, photo : ?Storage.ExternalBlob) : async Nat {
+    let applicationId = nextLicenseId;
+    let application : LicenseApplication = {
+      id = applicationId;
+      fullName;
+      mobile;
+      email;
+      dob;
+      licenceType;
+      address;
+      district;
+      state;
+      timestamp = Time.now();
+      photo;
+    };
+    licenseApplications.add(applicationId, application);
+    nextLicenseId += 1;
+    applicationId;
+  };
+
+  public shared ({ caller }) func getLicenseApplications() : async [LicenseApplication] {
+    licenseApplications.values().toArray();
   };
 };

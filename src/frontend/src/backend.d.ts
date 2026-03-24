@@ -14,6 +14,20 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export type Time = bigint;
+export interface LicenseApplication {
+    id: bigint;
+    dob: string;
+    licenceType: string;
+    fullName: string;
+    email: string;
+    district: string;
+    state: string;
+    address: string;
+    timestamp: Time;
+    mobile: string;
+    photo?: ExternalBlob;
+}
 export interface Complaint {
     id: bigint;
     subject: string;
@@ -23,12 +37,13 @@ export interface Complaint {
     image?: ExternalBlob;
     phone: string;
 }
-export type Time = bigint;
 export interface backendInterface {
     getAssociationInfo(): Promise<string>;
     getComplaints(): Promise<Array<Complaint>>;
     getFaqs(): Promise<Array<string>>;
+    getLicenseApplications(): Promise<Array<LicenseApplication>>;
     getMembershipFormUrl(): Promise<string>;
     getServices(): Promise<Array<string>>;
     submitComplaint(name: string, phone: string, subject: string, message: string, image: ExternalBlob | null): Promise<bigint>;
+    submitLicenseApplication(fullName: string, mobile: string, email: string, dob: string, licenceType: string, address: string, district: string, state: string, photo: ExternalBlob | null): Promise<bigint>;
 }

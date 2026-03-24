@@ -1,25 +1,29 @@
 # AIEA Membership Popup
 
 ## Current State
-The app has a complaint submission system where visitors can submit complaints with name, phone, subject, message, and optional image. Complaints are stored in the backend via `submitComplaint` and retrievable via `getComplaints`.
+- Backend stores complaints with `submitComplaint` / `getComplaints`
+- LicenseApplicationForm collects form data locally but does NOT persist to backend
+- AdminPage shows complaints only
 
 ## Requested Changes (Diff)
 
 ### Add
-- Admin page/view accessible via a secret/password-protected route or simple password gate
-- Displays all submitted complaints in a list/table with name, phone, subject, message, timestamp, and image (if any)
-- Nav link or hidden access route for admin
+- `LicenseApplication` type in backend: id, fullName, mobile, email, dob, licenceType, address, district, state, timestamp, photo (optional ExternalBlob)
+- `submitLicenseApplication` backend function
+- `getLicenseApplications` backend function
+- License Applications tab/section in AdminPage
+- `LicenseApplicationCard` component inside AdminPage
 
 ### Modify
-- App.tsx: add routing or conditional rendering for admin view
-- Navigation: add an admin link (or keep it hidden/accessible via URL)
+- `LicenseApplicationForm.tsx`: on submit, call `backend.submitLicenseApplication(...)` with form fields + passport photo as ExternalBlob
+- `backend.d.ts`: add `LicenseApplication` interface and new function signatures
+- `AdminPage.tsx`: add tabs (Complaints / Licence Applications), show licence applications
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Create `AdminPage` component that fetches and displays all complaints from `getComplaints`
-2. Add simple password gate (hardcoded password prompt) to protect admin view
-3. Add route `/admin` or toggle via URL hash `#admin`
-4. Display complaints in a card/table layout with all fields and image thumbnail
-5. Add discreet Admin link in footer
+1. Regenerate Motoko backend with LicenseApplication record and CRUD functions
+2. Update backend.d.ts with new types/functions
+3. Update LicenseApplicationForm to call backend.submitLicenseApplication on submit
+4. Update AdminPage to show two tabs: Complaints and Licence Applications

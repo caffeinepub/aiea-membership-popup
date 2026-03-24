@@ -1,28 +1,49 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Time "mo:core/Time";
+import Storage "blob-storage/Storage";
 
 module {
-  // Persistent state from new canister version
   type Complaint = {
     id : Nat;
     name : Text;
     phone : Text;
     subject : Text;
     message : Text;
-    timestamp : Time.Time;
-    image : ?Blob;
+    timestamp : Int;
+    image : ?Storage.ExternalBlob;
   };
 
-  type Actor = {
+  type OldActor = {
     complaints : Map.Map<Nat, Complaint>;
     nextComplaintId : Nat;
   };
+  type LicenseApplication = {
+    id : Nat;
+    fullName : Text;
+    mobile : Text;
+    email : Text;
+    dob : Text;
+    licenceType : Text;
+    address : Text;
+    district : Text;
+    state : Text;
+    timestamp : Int;
+    photo : ?Storage.ExternalBlob;
+  };
 
-  // Persistent state from really old canister versions (did not contain these variables)
-  type PreviousActor = {};
+  type NewActor = {
+    complaints : Map.Map<Nat, Complaint>;
+    nextComplaintId : Nat;
+    licenseApplications : Map.Map<Nat, LicenseApplication>;
+    nextLicenseId : Nat;
+  };
 
-  public func run(_old : PreviousActor) : Actor {
-    { complaints = Map.empty<Nat, Complaint>(); nextComplaintId = 0 };
+  public func run(old : OldActor) : NewActor {
+    {
+      complaints = old.complaints;
+      nextComplaintId = old.nextComplaintId;
+      licenseApplications = Map.empty<Nat, LicenseApplication>();
+      nextLicenseId = 0;
+    };
   };
 };

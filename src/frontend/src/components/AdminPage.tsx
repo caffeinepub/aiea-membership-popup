@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
+  Briefcase,
+  Calendar,
   Clock,
   Eye,
   EyeOff,
@@ -9,6 +11,8 @@ import {
   Inbox,
   Loader2,
   Lock,
+  Mail,
+  MapPin,
   MessageSquare,
   Phone,
   Shield,
@@ -17,7 +21,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import type { Complaint } from "../backend";
+import type { Complaint, LicenseApplication } from "../backend";
 import { useActor } from "../hooks/useActor";
 
 const ADMIN_PASSWORD = "aiea2024";
@@ -34,6 +38,14 @@ function formatTimestamp(ts: bigint): string {
     hour12: true,
   });
 }
+
+const LICENCE_LABELS: Record<string, string> = {
+  wireman: "Wireman",
+  supervisor: "Electrical Supervisor",
+  "contractor-c": "Contractor Class C",
+  "contractor-b": "Contractor Class B",
+  "contractor-a": "Contractor Class A",
+};
 
 function ComplaintCard({
   complaint,
@@ -112,6 +124,99 @@ function ComplaintCard({
   );
 }
 
+function LicenseApplicationCard({
+  application,
+  index,
+}: { application: LicenseApplication; index: number }) {
+  const photoUrl = application.photo ? application.photo.getDirectURL() : null;
+  const licenceLabel =
+    LICENCE_LABELS[application.licenceType] || application.licenceType;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.05 }}
+      className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+      data-ocid={`admin.applications.item.${index + 1}`}
+    >
+      <div className="h-1 bg-blue-600" />
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+              <User size={14} className="text-blue-600" />
+              {application.fullName}
+            </h3>
+            <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+              <Clock size={11} />
+              {formatTimestamp(application.timestamp)}
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+              #{String(application.id)}
+            </span>
+            <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+              <Briefcase size={10} className="inline mr-1" />
+              {licenceLabel}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3 mb-4">
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <Phone size={14} className="text-blue-500 shrink-0" />
+            <span>{application.mobile}</span>
+          </div>
+          {application.email && (
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <Mail size={14} className="text-blue-500 shrink-0" />
+              <span className="truncate">{application.email}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <Calendar size={14} className="text-blue-500 shrink-0" />
+            <span>DOB: {application.dob}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <MapPin size={14} className="text-blue-500 shrink-0" />
+            <span>
+              {application.district}, {application.state}
+            </span>
+          </div>
+        </div>
+
+        <div className="mb-4 text-sm text-gray-700">
+          <p className="flex items-start gap-2">
+            <MapPin size={14} className="text-blue-500 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{application.address}</span>
+          </p>
+        </div>
+
+        {photoUrl ? (
+          <div className="mt-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1">
+              <ImageIcon size={11} /> Passport Photo
+            </p>
+            <a href={photoUrl} target="_blank" rel="noopener noreferrer">
+              <img
+                src={photoUrl}
+                alt="Applicant passport"
+                className="w-24 h-28 rounded-xl border border-gray-200 object-cover hover:opacity-90 transition-opacity cursor-pointer"
+              />
+            </a>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 italic flex items-center gap-1">
+            <ImageIcon size={11} /> No photo attached
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 function ComplaintsList() {
   const { actor, isFetching } = useActor();
 
@@ -180,11 +285,84 @@ function ComplaintsList() {
   );
 }
 
+function LicenseApplicationsList() {
+  const { actor, isFetching } = useActor();
+
+  const {
+    data: applications,
+    isLoading,
+    isError,
+  } = useQuery<LicenseApplication[]>({
+    queryKey: ["licenseApplications"],
+    queryFn: async () => {
+      if (!actor) return [];
+      const result = await actor.getLicenseApplications();
+      return [...result].sort((a, b) => (b.timestamp > a.timestamp ? 1 : -1));
+    },
+    enabled: !!actor && !isFetching,
+  });
+
+  if (isLoading || isFetching) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center py-24 gap-4"
+        data-ocid="admin.applications.loading_state"
+      >
+        <Loader2 size={36} className="animate-spin text-blue-600" />
+        <p className="text-gray-500 font-medium">Loading applications...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center py-24 gap-3 text-red-600"
+        data-ocid="admin.applications.error_state"
+      >
+        <AlertCircle size={36} />
+        <p className="font-semibold">
+          Failed to load applications. Please try again.
+        </p>
+      </div>
+    );
+  }
+
+  if (!applications || applications.length === 0) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400"
+        data-ocid="admin.applications.empty_state"
+      >
+        <Inbox size={48} strokeWidth={1.5} />
+        <p className="font-semibold text-lg">No applications yet</p>
+        <p className="text-sm">
+          Submitted licence applications will appear here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="grid gap-4 sm:grid-cols-2"
+      data-ocid="admin.applications.list"
+    >
+      {applications.map((a, i) => (
+        <LicenseApplicationCard key={String(a.id)} application={a} index={i} />
+      ))}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<"complaints" | "applications">(
+    "complaints",
+  );
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -248,7 +426,7 @@ export default function AdminPage() {
                   Admin Access
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  Enter your password to view complaints
+                  Enter your password to view the admin panel
                 </p>
               </div>
 
@@ -319,13 +497,13 @@ export default function AdminPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-2xl font-extrabold text-gray-900">
-                    Complaints Dashboard
+                    Admin Dashboard
                   </h1>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    All submitted complaints, newest first
+                    View complaints and licence applications
                   </p>
                 </div>
                 <button
@@ -340,7 +518,61 @@ export default function AdminPage() {
                   Sign Out
                 </button>
               </div>
-              <ComplaintsList />
+
+              {/* Tabs */}
+              <div
+                className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit"
+                data-ocid="admin.panel.tab"
+              >
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("complaints")}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    activeTab === "complaints"
+                      ? "bg-white text-blue-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  data-ocid="admin.complaints.tab"
+                >
+                  Complaints
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("applications")}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    activeTab === "applications"
+                      ? "bg-white text-blue-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  data-ocid="admin.applications.tab"
+                >
+                  Licence Applications
+                </button>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {activeTab === "complaints" ? (
+                  <motion.div
+                    key="complaints"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ComplaintsList />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="applications"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <LicenseApplicationsList />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>

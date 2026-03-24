@@ -30,6 +30,19 @@ export const Complaint = IDL.Record({
   'image' : IDL.Opt(ExternalBlob),
   'phone' : IDL.Text,
 });
+export const LicenseApplication = IDL.Record({
+  'id' : IDL.Nat,
+  'dob' : IDL.Text,
+  'licenceType' : IDL.Text,
+  'fullName' : IDL.Text,
+  'email' : IDL.Text,
+  'district' : IDL.Text,
+  'state' : IDL.Text,
+  'address' : IDL.Text,
+  'timestamp' : Time,
+  'mobile' : IDL.Text,
+  'photo' : IDL.Opt(ExternalBlob),
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -61,10 +74,26 @@ export const idlService = IDL.Service({
   'getAssociationInfo' : IDL.Func([], [IDL.Text], ['query']),
   'getComplaints' : IDL.Func([], [IDL.Vec(Complaint)], []),
   'getFaqs' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+  'getLicenseApplications' : IDL.Func([], [IDL.Vec(LicenseApplication)], []),
   'getMembershipFormUrl' : IDL.Func([], [IDL.Text], ['query']),
   'getServices' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'submitComplaint' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Opt(ExternalBlob)],
+      [IDL.Nat],
+      [],
+    ),
+  'submitLicenseApplication' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Opt(ExternalBlob),
+      ],
       [IDL.Nat],
       [],
     ),
@@ -94,6 +123,19 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'image' : IDL.Opt(ExternalBlob),
     'phone' : IDL.Text,
+  });
+  const LicenseApplication = IDL.Record({
+    'id' : IDL.Nat,
+    'dob' : IDL.Text,
+    'licenceType' : IDL.Text,
+    'fullName' : IDL.Text,
+    'email' : IDL.Text,
+    'district' : IDL.Text,
+    'state' : IDL.Text,
+    'address' : IDL.Text,
+    'timestamp' : Time,
+    'mobile' : IDL.Text,
+    'photo' : IDL.Opt(ExternalBlob),
   });
   
   return IDL.Service({
@@ -126,10 +168,26 @@ export const idlFactory = ({ IDL }) => {
     'getAssociationInfo' : IDL.Func([], [IDL.Text], ['query']),
     'getComplaints' : IDL.Func([], [IDL.Vec(Complaint)], []),
     'getFaqs' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getLicenseApplications' : IDL.Func([], [IDL.Vec(LicenseApplication)], []),
     'getMembershipFormUrl' : IDL.Func([], [IDL.Text], ['query']),
     'getServices' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'submitComplaint' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Opt(ExternalBlob)],
+        [IDL.Nat],
+        [],
+      ),
+    'submitLicenseApplication' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Opt(ExternalBlob),
+        ],
         [IDL.Nat],
         [],
       ),
