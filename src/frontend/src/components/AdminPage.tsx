@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
   Briefcase,
   Calendar,
+  CheckCircle,
   Clock,
   Eye,
   EyeOff,
@@ -18,6 +19,7 @@ import {
   Shield,
   Tag,
   User,
+  XCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -45,6 +47,26 @@ const LICENCE_LABELS: Record<string, string> = {
   "contractor-c": "Contractor Class C",
   "contractor-b": "Contractor Class B",
   "contractor-a": "Contractor Class A",
+};
+
+type ApplicationStatus = "Pending" | "Approved" | "Rejected";
+
+const STATUS_CONFIG: Record<
+  ApplicationStatus,
+  { icon: React.ReactNode; className: string }
+> = {
+  Pending: {
+    icon: <Clock size={11} />,
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  Approved: {
+    icon: <CheckCircle size={11} />,
+    className: "bg-green-50 text-green-700 border-green-200",
+  },
+  Rejected: {
+    icon: <XCircle size={11} />,
+    className: "bg-red-50 text-red-700 border-red-200",
+  },
 };
 
 function ComplaintCard({
@@ -128,9 +150,33 @@ function LicenseApplicationCard({
   application,
   index,
 }: { application: LicenseApplication; index: number }) {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  const [updating, setUpdating] = useState(false);
+
   const photoUrl = application.photo ? application.photo.getDirectURL() : null;
   const licenceLabel =
     LICENCE_LABELS[application.licenceType] || application.licenceType;
+
+  const currentStatus = ((application as any).status ||
+    "Pending") as ApplicationStatus;
+  const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.Pending;
+
+  async function handleStatusChange(newStatus: string) {
+    if (!actor) return;
+    setUpdating(true);
+    try {
+      await (actor as any).updateLicenseApplicationStatus(
+        application.id,
+        newStatus,
+      );
+      await queryClient.invalidateQueries({
+        queryKey: ["licenseApplications"],
+      });
+    } finally {
+      setUpdating(false);
+    }
+  }
 
   return (
     <motion.div
@@ -156,6 +202,13 @@ function LicenseApplicationCard({
           <div className="flex flex-col items-end gap-1.5">
             <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
               #{String(application.id)}
+            </span>
+            <span
+              className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border flex items-center gap-1 ${statusConfig.className}`}
+              data-ocid={`admin.applications.item.${index + 1}.success_state`}
+            >
+              {statusConfig.icon}
+              {currentStatus}
             </span>
             <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
               <Briefcase size={10} className="inline mr-1" />
@@ -192,6 +245,37 @@ function LicenseApplicationCard({
             <MapPin size={14} className="text-blue-500 shrink-0 mt-0.5" />
             <span className="leading-relaxed">{application.address}</span>
           </p>
+        </div>
+
+        {/* Status update */}
+        <div className="mb-4 border-t border-gray-100 pt-4">
+          <label
+            className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider"
+            htmlFor={`status-${String(application.id)}`}
+          >
+            Update Status
+          </label>
+          <div className="flex items-center gap-2">
+            <select
+              id={`status-${String(application.id)}`}
+              value={currentStatus}
+              disabled={updating}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition"
+              data-ocid={`admin.applications.item.${index + 1}.select`}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            {updating && (
+              <Loader2
+                size={16}
+                className="animate-spin text-blue-600 shrink-0"
+                data-ocid={`admin.applications.item.${index + 1}.loading_state`}
+              />
+            )}
+          </div>
         </div>
 
         {photoUrl ? (

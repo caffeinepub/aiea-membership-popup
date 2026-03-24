@@ -6,15 +6,10 @@ import Nat "mo:core/Nat";
 import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
-import Migration "migration"; // Migration module for upgrades
 
-// with clause for stable to stable migration
-(with migration = Migration.run)
 actor {
-  // Include persistent storage logic
   include MixinStorage();
 
-  // Complaint record type
   type Complaint = {
     id : Nat;
     name : Text;
@@ -25,23 +20,19 @@ actor {
     image : ?Storage.ExternalBlob;
   };
 
-  // Association details
   let associationName = "All India Electrician Association";
   let contactEmail = "contact@aiea.org";
   let headquarters = "Delhi, India";
   let membershipFormUrl = "https://docs.google.com/membership-form";
 
-  // Static informational content
   public query func getAssociationInfo() : async Text {
     "Welcome to " # associationName # ". Reach us at " # contactEmail # ". HQ: " # headquarters;
   };
 
-  // Membership form URL for popup
   public query ({ caller }) func getMembershipFormUrl() : async Text {
     membershipFormUrl;
   };
 
-  // List of services offered
   public query ({ caller }) func getServices() : async [Text] {
     let services = List.empty<Text>();
     services.add("Electrical Safety Training");
@@ -51,7 +42,6 @@ actor {
     services.toArray();
   };
 
-  // Static FAQ section
   public query ({ caller }) func getFaqs() : async [Text] {
     let faqs = List.empty<Text>();
     faqs.add("Q: Is membership open to all electricians?");
@@ -61,7 +51,6 @@ actor {
     faqs.toArray();
   };
 
-  // Complaint Handling
   var nextComplaintId = 0;
   let complaints = Map.empty<Nat, Complaint>();
 
@@ -85,8 +74,8 @@ actor {
     complaints.values().toArray();
   };
 
-  // License Application Handling
-  type LicenseApplication = {
+  // Original LicenseApplication type — must not change to preserve stable compatibility
+  type LicenseApplicationStored = {
     id : Nat;
     fullName : Text;
     mobile : Text;
@@ -100,12 +89,30 @@ actor {
     photo : ?Storage.ExternalBlob;
   };
 
+  // Status stored separately to avoid stable migration errors
+  // Returns type exposed to frontend (includes status)
+  type LicenseApplication = {
+    id : Nat;
+    fullName : Text;
+    mobile : Text;
+    email : Text;
+    dob : Text;
+    licenceType : Text;
+    address : Text;
+    district : Text;
+    state : Text;
+    timestamp : Time.Time;
+    photo : ?Storage.ExternalBlob;
+    status : Text;
+  };
+
   var nextLicenseId = 0;
-  let licenseApplications = Map.empty<Nat, LicenseApplication>();
+  let licenseApplications = Map.empty<Nat, LicenseApplicationStored>();
+  let licenseApplicationStatuses = Map.empty<Nat, Text>();
 
   public shared ({ caller }) func submitLicenseApplication(fullName : Text, mobile : Text, email : Text, dob : Text, licenceType : Text, address : Text, district : Text, state : Text, photo : ?Storage.ExternalBlob) : async Nat {
     let applicationId = nextLicenseId;
-    let application : LicenseApplication = {
+    let application : LicenseApplicationStored = {
       id = applicationId;
       fullName;
       mobile;
@@ -119,11 +126,43 @@ actor {
       photo;
     };
     licenseApplications.add(applicationId, application);
+    licenseApplicationStatuses.add(applicationId, "Pending");
     nextLicenseId += 1;
     applicationId;
   };
 
   public shared ({ caller }) func getLicenseApplications() : async [LicenseApplication] {
-    licenseApplications.values().toArray();
+    let result = List.empty<LicenseApplication>();
+    for (app in licenseApplications.values()) {
+      let status = switch (licenseApplicationStatuses.get(app.id)) {
+        case (?s) { s };
+        case null { "Pending" };
+      };
+      result.add({
+        id = app.id;
+        fullName = app.fullName;
+        mobile = app.mobile;
+        email = app.email;
+        dob = app.dob;
+        licenceType = app.licenceType;
+        address = app.address;
+        district = app.district;
+        state = app.state;
+        timestamp = app.timestamp;
+        photo = app.photo;
+        status;
+      });
+    };
+    result.toArray();
+  };
+
+  public shared ({ caller }) func updateLicenseApplicationStatus(id : Nat, newStatus : Text) : async Bool {
+    switch (licenseApplications.get(id)) {
+      case (?_) {
+        licenseApplicationStatuses.add(id, newStatus);
+        true;
+      };
+      case null { false };
+    };
   };
 };

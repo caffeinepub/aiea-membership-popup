@@ -1,29 +1,26 @@
-# AIEA Membership Popup
+# AIEA - Status Field for Licence Applications
 
 ## Current State
-- Backend stores complaints with `submitComplaint` / `getComplaints`
-- LicenseApplicationForm collects form data locally but does NOT persist to backend
-- AdminPage shows complaints only
+The admin panel shows submitted licence applications. Each application has id, fullName, mobile, email, dob, licenceType, address, district, state, timestamp, photo. There is no status tracking.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `LicenseApplication` type in backend: id, fullName, mobile, email, dob, licenceType, address, district, state, timestamp, photo (optional ExternalBlob)
-- `submitLicenseApplication` backend function
-- `getLicenseApplications` backend function
-- License Applications tab/section in AdminPage
-- `LicenseApplicationCard` component inside AdminPage
+- `status` field (Text) to `LicenseApplication` type, defaulting to "Pending" on submission
+- `updateLicenseApplicationStatus(id: Nat, status: Text) : async Bool` backend function
+- Status badge on each LicenseApplicationCard in the admin view
+- Dropdown/select to change status (Pending / Approved / Rejected) per application
+- Visual color coding: Pending=yellow, Approved=green, Rejected=red
 
 ### Modify
-- `LicenseApplicationForm.tsx`: on submit, call `backend.submitLicenseApplication(...)` with form fields + passport photo as ExternalBlob
-- `backend.d.ts`: add `LicenseApplication` interface and new function signatures
-- `AdminPage.tsx`: add tabs (Complaints / Licence Applications), show licence applications
+- `submitLicenseApplication` sets status to "Pending" on creation
+- `LicenseApplicationCard` component to include status UI
+- `backend.d.ts` to expose `status: string` field and `updateLicenseApplicationStatus` method
 
 ### Remove
-- Nothing removed
+Nothing removed.
 
 ## Implementation Plan
-1. Regenerate Motoko backend with LicenseApplication record and CRUD functions
-2. Update backend.d.ts with new types/functions
-3. Update LicenseApplicationForm to call backend.submitLicenseApplication on submit
-4. Update AdminPage to show two tabs: Complaints and Licence Applications
+1. Update `main.mo`: add `status` to `LicenseApplication`, default to "Pending", add `updateLicenseApplicationStatus` function
+2. Update `backend.d.ts`: add `status` field and new method signature
+3. Update `AdminPage.tsx`: add status badge + inline select to change status, with optimistic UI and mutation call

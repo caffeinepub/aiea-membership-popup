@@ -27,6 +27,7 @@ export interface LicenseApplication {
     timestamp: Time;
     mobile: string;
     photo?: ExternalBlob;
+    status: string;
 }
 export interface Complaint {
     id: bigint;
@@ -46,4 +47,5 @@ export interface backendInterface {
     getServices(): Promise<Array<string>>;
     submitComplaint(name: string, phone: string, subject: string, message: string, image: ExternalBlob | null): Promise<bigint>;
     submitLicenseApplication(fullName: string, mobile: string, email: string, dob: string, licenceType: string, address: string, district: string, state: string, photo: ExternalBlob | null): Promise<bigint>;
+    updateLicenseApplicationStatus(id: bigint, status: string): Promise<boolean>;
 }
