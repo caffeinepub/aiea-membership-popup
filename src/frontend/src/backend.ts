@@ -102,6 +102,8 @@ export interface LicenseApplication {
     timestamp: Time;
     mobile: string;
     photo?: ExternalBlob;
+    status: string;
+    paymentScreenshot?: ExternalBlob;
 }
 export interface Complaint {
     id: bigint;
@@ -137,7 +139,8 @@ export interface backendInterface {
     getMembershipFormUrl(): Promise<string>;
     getServices(): Promise<Array<string>>;
     submitComplaint(name: string, phone: string, subject: string, message: string, image: ExternalBlob | null): Promise<bigint>;
-    submitLicenseApplication(fullName: string, mobile: string, email: string, dob: string, licenceType: string, address: string, district: string, state: string, photo: ExternalBlob | null): Promise<bigint>;
+    submitLicenseApplication(fullName: string, mobile: string, email: string, dob: string, licenceType: string, address: string, district: string, state: string, photo: ExternalBlob | null, paymentScreenshot: ExternalBlob | null): Promise<bigint>;
+    updateLicenseApplicationStatus(id: bigint, status: string): Promise<boolean>;
 }
 import type { Complaint as _Complaint, ExternalBlob as _ExternalBlob, LicenseApplication as _LicenseApplication, Time as _Time, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -324,17 +327,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitLicenseApplication(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: ExternalBlob | null): Promise<bigint> {
+    async submitLicenseApplication(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: ExternalBlob | null, arg9: ExternalBlob | null): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8));
+                const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8), await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg9));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8));
+            const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8), await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg9));
+            return result;
+        }
+    }
+    async updateLicenseApplicationStatus(arg0: bigint, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateLicenseApplicationStatus(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateLicenseApplicationStatus(arg0, arg1);
             return result;
         }
     }
@@ -399,6 +416,8 @@ async function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promi
     timestamp: _Time;
     mobile: string;
     photo: [] | [_ExternalBlob];
+    status: string;
+    paymentScreenshot: [] | [_ExternalBlob];
 }): Promise<{
     id: bigint;
     dob: string;
@@ -411,6 +430,8 @@ async function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promi
     timestamp: Time;
     mobile: string;
     photo?: ExternalBlob;
+    status: string;
+    paymentScreenshot?: ExternalBlob;
 }> {
     return {
         id: value.id,
@@ -423,7 +444,9 @@ async function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promi
         address: value.address,
         timestamp: value.timestamp,
         mobile: value.mobile,
-        photo: record_opt_to_undefined(await from_candid_opt_n11(_uploadFile, _downloadFile, value.photo))
+        photo: record_opt_to_undefined(await from_candid_opt_n11(_uploadFile, _downloadFile, value.photo)),
+        status: value.status ?? 'Pending',
+        paymentScreenshot: record_opt_to_undefined(await from_candid_opt_n11(_uploadFile, _downloadFile, value.paymentScreenshot ?? []))
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {

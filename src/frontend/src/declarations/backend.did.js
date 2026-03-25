@@ -42,6 +42,20 @@ export const LicenseApplication = IDL.Record({
   'timestamp' : Time,
   'mobile' : IDL.Text,
   'photo' : IDL.Opt(ExternalBlob),
+  'status' : IDL.Text,
+  'paymentScreenshot' : IDL.Opt(ExternalBlob),
+});
+
+export const PageView = IDL.Record({
+  'sessionId' : IDL.Text,
+  'page' : IDL.Text,
+  'timestamp' : Time,
+});
+
+export const TrafficStats = IDL.Record({
+  'onlineNow' : IDL.Nat,
+  'totalPageViews' : IDL.Nat,
+  'recentViews' : IDL.Vec(PageView),
 });
 
 export const idlService = IDL.Service({
@@ -93,10 +107,19 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Opt(ExternalBlob),
+        IDL.Opt(ExternalBlob),
       ],
       [IDL.Nat],
       [],
     ),
+  'updateLicenseApplicationStatus' : IDL.Func(
+      [IDL.Nat, IDL.Text],
+      [IDL.Bool],
+      [],
+    ),
+  'recordPageView' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'sendHeartbeat' : IDL.Func([IDL.Text], [], []),
+  'getTrafficStats' : IDL.Func([], [TrafficStats], ['query']),
 });
 
 export const idlInitArgs = [];
@@ -136,6 +159,18 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'mobile' : IDL.Text,
     'photo' : IDL.Opt(ExternalBlob),
+    'status' : IDL.Text,
+    'paymentScreenshot' : IDL.Opt(ExternalBlob),
+  });
+  const PageView = IDL.Record({
+    'sessionId' : IDL.Text,
+    'page' : IDL.Text,
+    'timestamp' : Time,
+  });
+  const TrafficStats = IDL.Record({
+    'onlineNow' : IDL.Nat,
+    'totalPageViews' : IDL.Nat,
+    'recentViews' : IDL.Vec(PageView),
   });
   
   return IDL.Service({
@@ -187,10 +222,19 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Opt(ExternalBlob),
+          IDL.Opt(ExternalBlob),
         ],
         [IDL.Nat],
         [],
       ),
+    'updateLicenseApplicationStatus' : IDL.Func(
+        [IDL.Nat, IDL.Text],
+        [IDL.Bool],
+        [],
+      ),
+    'recordPageView' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'sendHeartbeat' : IDL.Func([IDL.Text], [], []),
+    'getTrafficStats' : IDL.Func([], [TrafficStats], ['query']),
   });
 };
 

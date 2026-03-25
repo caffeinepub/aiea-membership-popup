@@ -119,6 +119,8 @@ export default function LicenseApplicationForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    setSubmitError("");
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -133,7 +135,6 @@ export default function LicenseApplicationForm() {
     }
 
     setSubmitting(true);
-    setSubmitError("");
 
     try {
       let photo: ExternalBlob | null = null;
@@ -150,7 +151,7 @@ export default function LicenseApplicationForm() {
         );
       }
 
-      await (actor as any).submitLicenseApplication(
+      await actor.submitLicenseApplication(
         form.fullName,
         form.mobile,
         form.email,
@@ -306,7 +307,7 @@ export default function LicenseApplicationForm() {
                   value={form.fullName}
                   onChange={(e) => handleInput("fullName", e.target.value)}
                   placeholder="Enter your full name"
-                  className={errors.fullName ? "border-red-400" : ""}
+                  className={`text-gray-900 ${errors.fullName ? "border-red-400" : ""}`}
                   data-ocid="apply_licence.input"
                 />
                 {errors.fullName && (
@@ -331,7 +332,7 @@ export default function LicenseApplicationForm() {
                   value={form.mobile}
                   onChange={(e) => handleInput("mobile", e.target.value)}
                   placeholder="+91 XXXXX XXXXX"
-                  className={errors.mobile ? "border-red-400" : ""}
+                  className={`text-gray-900 ${errors.mobile ? "border-red-400" : ""}`}
                   data-ocid="apply_licence.input"
                 />
                 {errors.mobile && (
@@ -357,6 +358,7 @@ export default function LicenseApplicationForm() {
                   value={form.email}
                   onChange={(e) => handleInput("email", e.target.value)}
                   placeholder="email@example.com"
+                  className="text-gray-900"
                   data-ocid="apply_licence.input"
                 />
               </div>
@@ -372,7 +374,7 @@ export default function LicenseApplicationForm() {
                   type="date"
                   value={form.dob}
                   onChange={(e) => handleInput("dob", e.target.value)}
-                  className={errors.dob ? "border-red-400" : ""}
+                  className={`text-gray-900 ${errors.dob ? "border-red-400" : ""}`}
                   data-ocid="apply_licence.input"
                 />
                 {errors.dob && (
@@ -448,7 +450,7 @@ export default function LicenseApplicationForm() {
                 onChange={(e) => handleInput("address", e.target.value)}
                 placeholder="House No., Street, Area, City..."
                 rows={3}
-                className={errors.address ? "border-red-400" : ""}
+                className={`text-gray-900 ${errors.address ? "border-red-400" : ""}`}
                 data-ocid="apply_licence.textarea"
               />
               {errors.address && (
@@ -473,7 +475,7 @@ export default function LicenseApplicationForm() {
                   value={form.district}
                   onChange={(e) => handleInput("district", e.target.value)}
                   placeholder="e.g. Karbi Anglong"
-                  className={errors.district ? "border-red-400" : ""}
+                  className={`text-gray-900 ${errors.district ? "border-red-400" : ""}`}
                   data-ocid="apply_licence.input"
                 />
                 {errors.district && (
@@ -496,7 +498,7 @@ export default function LicenseApplicationForm() {
                   id="state"
                   value={form.state}
                   onChange={(e) => handleInput("state", e.target.value)}
-                  className={errors.state ? "border-red-400" : ""}
+                  className={`text-gray-900 ${errors.state ? "border-red-400" : ""}`}
                   data-ocid="apply_licence.input"
                 />
                 {errors.state && (

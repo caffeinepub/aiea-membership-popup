@@ -32,6 +32,18 @@ export interface LicenseApplication {
   'timestamp' : Time,
   'mobile' : string,
   'photo' : [] | [ExternalBlob],
+  'status' : string,
+  'paymentScreenshot' : [] | [ExternalBlob],
+}
+export interface PageView {
+  'sessionId' : string,
+  'page' : string,
+  'timestamp' : Time,
+}
+export interface TrafficStats {
+  'onlineNow' : bigint,
+  'totalPageViews' : bigint,
+  'recentViews' : Array<PageView>,
 }
 export type Time = bigint;
 export interface _CaffeineStorageCreateCertificateResult {
@@ -82,9 +94,14 @@ export interface _SERVICE {
       string,
       string,
       [] | [ExternalBlob],
+      [] | [ExternalBlob],
     ],
     bigint
   >,
+  'updateLicenseApplicationStatus' : ActorMethod<[bigint, string], boolean>,
+  'recordPageView' : ActorMethod<[string, string], undefined>,
+  'sendHeartbeat' : ActorMethod<[string], undefined>,
+  'getTrafficStats' : ActorMethod<[], TrafficStats>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
