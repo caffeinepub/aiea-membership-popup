@@ -26,6 +26,12 @@ interface FileField {
 
 const fileFields: FileField[] = [
   {
+    key: "iti",
+    label: "ITI / Qualification Certificate",
+    accept: ".pdf,image/*",
+    required: true,
+  },
+  {
     key: "ageProof",
     label: "Age Proof / Date of Birth Certificate",
     accept: ".pdf,image/*",
@@ -40,6 +46,12 @@ const fileFields: FileField[] = [
   {
     key: "aadhaar",
     label: "Aadhaar Card",
+    accept: ".pdf,image/*",
+    required: true,
+  },
+  {
+    key: "challan",
+    label: "Treasury Challan",
     accept: ".pdf,image/*",
     required: true,
   },

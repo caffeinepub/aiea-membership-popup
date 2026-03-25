@@ -57,11 +57,36 @@ const keyDetails = [
 ];
 
 const costData = [
-  { type: "Wireman", appFee: "₹100" },
-  { type: "Supervisor", appFee: "₹200" },
-  { type: "Contractor (Class C)", appFee: "₹500" },
-  { type: "Contractor (Class B)", appFee: "₹1,000" },
-  { type: "Contractor (Class A)", appFee: "₹2,000" },
+  {
+    type: "Wireman",
+    appFee: "₹100",
+    challan: "₹50 – ₹100",
+    total: "₹150 – ₹200",
+  },
+  {
+    type: "Supervisor",
+    appFee: "₹200",
+    challan: "₹100 – ₹200",
+    total: "₹300 – ₹400",
+  },
+  {
+    type: "Contractor (Class C)",
+    appFee: "₹500",
+    challan: "₹200 – ₹500",
+    total: "₹700 – ₹1,000",
+  },
+  {
+    type: "Contractor (Class B)",
+    appFee: "₹1,000",
+    challan: "₹500",
+    total: "₹1,500",
+  },
+  {
+    type: "Contractor (Class A)",
+    appFee: "₹2,000",
+    challan: "₹1,000",
+    total: "₹3,000",
+  },
 ];
 
 export default function LicenseGuide() {
@@ -148,6 +173,12 @@ export default function LicenseGuide() {
                   <TableHead className="text-white font-bold">
                     Application Fee
                   </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Treasury Challan
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Approximate Total
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -162,6 +193,12 @@ export default function LicenseGuide() {
                     </TableCell>
                     <TableCell className="text-gray-600">
                       {row.appFee}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {row.challan}
+                    </TableCell>
+                    <TableCell className="font-bold text-blue-700">
+                      {row.total}
                     </TableCell>
                   </TableRow>
                 ))}
