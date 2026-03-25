@@ -1,26 +1,26 @@
-# AIEA - Status Field for Licence Applications
+# AIEA Membership Site
 
 ## Current State
-The admin panel shows submitted licence applications. Each application has id, fullName, mobile, email, dob, licenceType, address, district, state, timestamp, photo. There is no status tracking.
+Full-stack AIEA landing page with complaint box, licence application form, admin panel (Complaints, Licence Applications, Traffic tabs), and real-time traffic analytics. Site goes blank on visit due to unhandled render errors — no error boundary exists anywhere in the component tree.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `status` field (Text) to `LicenseApplication` type, defaulting to "Pending" on submission
-- `updateLicenseApplicationStatus(id: Nat, status: Text) : async Bool` backend function
-- Status badge on each LicenseApplicationCard in the admin view
-- Dropdown/select to change status (Pending / Approved / Rejected) per application
-- Visual color coding: Pending=yellow, Approved=green, Rejected=red
+- React ErrorBoundary component wrapping the entire App to prevent blank screens on render errors
 
 ### Modify
-- `submitLicenseApplication` sets status to "Pending" on creation
-- `LicenseApplicationCard` component to include status UI
-- `backend.d.ts` to expose `status: string` field and `updateLicenseApplicationStatus` method
+- AdminPage.tsx: Remove the Traffic tab (button, TrafficTab component, and all related state/logic). Admin panel should only show Complaints and Licence Applications tabs.
+- App.tsx: Wrap root render with ErrorBoundary; remove traffic-related useEffect calls (recordPageView, sendHeartbeat) that use `(actor as any)` casting since they add unnecessary complexity and can silently fail
+- AdminPage.tsx: Remove `activeTab` type from including 'traffic', update subtitle text to remove 'traffic' mention
 
 ### Remove
-Nothing removed.
+- TrafficTab function component from AdminPage.tsx
+- All traffic-related imports in AdminPage (Activity, Globe, Wifi icons if unused)
+- recordPageView/sendHeartbeat useEffect in App.tsx
 
 ## Implementation Plan
-1. Update `main.mo`: add `status` to `LicenseApplication`, default to "Pending", add `updateLicenseApplicationStatus` function
-2. Update `backend.d.ts`: add `status` field and new method signature
-3. Update `AdminPage.tsx`: add status badge + inline select to change status, with optimistic UI and mutation call
+1. Create `src/frontend/src/components/ErrorBoundary.tsx` - class component that catches render errors and shows a friendly reload message
+2. Wrap `<App />` in main.tsx with ErrorBoundary, OR wrap the return in App.tsx
+3. In AdminPage.tsx: change activeTab type to `'complaints' | 'applications'`, remove the Traffic tab button, remove the TrafficTab component render, remove the TrafficTab function, remove unused icon imports
+4. In App.tsx: remove the useEffect that calls recordPageView and sendHeartbeat (these are traffic tracking calls that can fail silently and complicate the code)
+5. Validate and build
