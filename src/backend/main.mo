@@ -6,6 +6,7 @@ import Nat "mo:core/Nat";
 import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
+import Array "mo:core/Array";
 
 actor {
   include MixinStorage();
@@ -29,11 +30,11 @@ actor {
     "Welcome to " # associationName # ". Reach us at " # contactEmail # ". HQ: " # headquarters;
   };
 
-  public query ({ caller }) func getMembershipFormUrl() : async Text {
+  public query func getMembershipFormUrl() : async Text {
     membershipFormUrl;
   };
 
-  public query ({ caller }) func getServices() : async [Text] {
+  public query func getServices() : async [Text] {
     let services = List.empty<Text>();
     services.add("Electrical Safety Training");
     services.add("Certification Support");
@@ -42,7 +43,7 @@ actor {
     services.toArray();
   };
 
-  public query ({ caller }) func getFaqs() : async [Text] {
+  public query func getFaqs() : async [Text] {
     let faqs = List.empty<Text>();
     faqs.add("Q: Is membership open to all electricians?");
     faqs.add("A: Yes, any certified electrician can apply.");
@@ -54,7 +55,7 @@ actor {
   var nextComplaintId = 0;
   let complaints = Map.empty<Nat, Complaint>();
 
-  public shared ({ caller }) func submitComplaint(name : Text, phone : Text, subject : Text, message : Text, image : ?Storage.ExternalBlob) : async Nat {
+  public shared func submitComplaint(name : Text, phone : Text, subject : Text, message : Text, image : ?Storage.ExternalBlob) : async Nat {
     let complaintId = nextComplaintId;
     let complaint : Complaint = {
       id = complaintId;
@@ -70,7 +71,7 @@ actor {
     complaintId;
   };
 
-  public shared ({ caller }) func getComplaints() : async [Complaint] {
+  public shared func getComplaints() : async [Complaint] {
     complaints.values().toArray();
   };
 
@@ -112,7 +113,7 @@ actor {
   let licenseApplicationStatuses = Map.empty<Nat, Text>();
   let licensePaymentScreenshots = Map.empty<Nat, Storage.ExternalBlob>();
 
-  public shared ({ caller }) func submitLicenseApplication(fullName : Text, mobile : Text, email : Text, dob : Text, licenceType : Text, address : Text, district : Text, state : Text, photo : ?Storage.ExternalBlob, paymentScreenshot : ?Storage.ExternalBlob) : async Nat {
+  public shared func submitLicenseApplication(fullName : Text, mobile : Text, email : Text, dob : Text, licenceType : Text, address : Text, district : Text, state : Text, photo : ?Storage.ExternalBlob, paymentScreenshot : ?Storage.ExternalBlob) : async Nat {
     let applicationId = nextLicenseId;
     let application : LicenseApplicationStored = {
       id = applicationId;
@@ -137,7 +138,7 @@ actor {
     applicationId;
   };
 
-  public shared ({ caller }) func getLicenseApplications() : async [LicenseApplication] {
+  public shared func getLicenseApplications() : async [LicenseApplication] {
     let result = List.empty<LicenseApplication>();
     for (app in licenseApplications.values()) {
       let status = switch (licenseApplicationStatuses.get(app.id)) {
@@ -164,7 +165,7 @@ actor {
     result.toArray();
   };
 
-  public shared ({ caller }) func updateLicenseApplicationStatus(id : Nat, newStatus : Text) : async Bool {
+  public shared func updateLicenseApplicationStatus(id : Nat, newStatus : Text) : async Bool {
     switch (licenseApplications.get(id)) {
       case (?_) {
         licenseApplicationStatuses.add(id, newStatus);
@@ -172,5 +173,50 @@ actor {
       };
       case null { false };
     };
+  };
+
+  // ── Visitor Tracking ──────────────────────────────────────────────────────
+
+  type PageView = {
+    sessionId : Text;
+    page : Text;
+    timestamp : Time.Time;
+  };
+
+  type TrafficStats = {
+    onlineNow : Nat;
+    totalPageViews : Nat;
+    recentViews : [PageView];
+  };
+
+  let pageViews = List.empty<PageView>();
+  let activeSessions = Map.empty<Text, Time.Time>(); // sessionId -> lastHeartbeat
+
+  public shared func recordPageView(page : Text, sessionId : Text) : async () {
+    pageViews.add({ sessionId; page; timestamp = Time.now() });
+    activeSessions.add(sessionId, Time.now());
+  };
+
+  public shared func sendHeartbeat(sessionId : Text) : async () {
+    activeSessions.add(sessionId, Time.now());
+  };
+
+  public query func getTrafficStats() : async TrafficStats {
+    let fiveMinNs : Int = 5 * 60 * 1_000_000_000;
+    let now = Time.now();
+    var online = 0;
+    for (lastSeen in activeSessions.values()) {
+      if (now - lastSeen < fiveMinNs) {
+        online += 1;
+      };
+    };
+    let all = pageViews.toArray();
+    let total = all.size();
+    let maxRecent = 100;
+    // Use addition to avoid Nat subtraction trap warnings
+    let recentCount = if (total > maxRecent) { maxRecent } else { total };
+    let startIdx = total - recentCount;
+    let recent = Array.tabulate(recentCount, func(i : Nat) : PageView { all[startIdx + i] });
+    { onlineNow = online; totalPageViews = total; recentViews = recent };
   };
 };

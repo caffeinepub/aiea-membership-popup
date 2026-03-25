@@ -39,6 +39,16 @@ export interface Complaint {
     image?: ExternalBlob;
     phone: string;
 }
+export interface PageView {
+    sessionId: string;
+    page: string;
+    timestamp: Time;
+}
+export interface TrafficStats {
+    onlineNow: bigint;
+    totalPageViews: bigint;
+    recentViews: Array<PageView>;
+}
 export interface backendInterface {
     getAssociationInfo(): Promise<string>;
     getComplaints(): Promise<Array<Complaint>>;
@@ -49,4 +59,7 @@ export interface backendInterface {
     submitComplaint(name: string, phone: string, subject: string, message: string, image: ExternalBlob | null): Promise<bigint>;
     submitLicenseApplication(fullName: string, mobile: string, email: string, dob: string, licenceType: string, address: string, district: string, state: string, photo: ExternalBlob | null, paymentScreenshot: ExternalBlob | null): Promise<bigint>;
     updateLicenseApplicationStatus(id: bigint, status: string): Promise<boolean>;
+    recordPageView(page: string, sessionId: string): Promise<void>;
+    sendHeartbeat(sessionId: string): Promise<void>;
+    getTrafficStats(): Promise<TrafficStats>;
 }

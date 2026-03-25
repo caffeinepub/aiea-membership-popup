@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Activity,
   AlertCircle,
   ArrowLeft,
   Briefcase,
@@ -9,6 +10,8 @@ import {
   CreditCard,
   Eye,
   EyeOff,
+  Filter,
+  Globe,
   ImageIcon,
   Inbox,
   Loader2,
@@ -17,9 +20,11 @@ import {
   MapPin,
   MessageSquare,
   Phone,
+  Search,
   Shield,
   Tag,
   User,
+  Wifi,
   XCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -28,6 +33,17 @@ import type { Complaint, LicenseApplication } from "../backend";
 import { useActor } from "../hooks/useActor";
 
 const ADMIN_PASSWORD = "aiea2024";
+
+interface PageView {
+  sessionId: string;
+  page: string;
+  timestamp: bigint;
+}
+interface TrafficStats {
+  onlineNow: bigint;
+  totalPageViews: bigint;
+  recentViews: Array<PageView>;
+}
 
 function formatTimestamp(ts: bigint): string {
   const ms = Number(ts / 1_000_000n);
@@ -335,6 +351,7 @@ function LicenseApplicationCard({
 
 function ComplaintsList() {
   const { actor, isFetching } = useActor();
+  const [search, setSearch] = useState("");
 
   const {
     data: complaints,
@@ -376,33 +393,77 @@ function ComplaintsList() {
     );
   }
 
-  if (!complaints || complaints.length === 0) {
+  const filtered = (complaints ?? []).filter((c) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
     return (
-      <div
-        className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400"
-        data-ocid="admin.complaints.empty_state"
-      >
-        <Inbox size={48} strokeWidth={1.5} />
-        <p className="font-semibold text-lg">No complaints yet</p>
-        <p className="text-sm">Submitted complaints will appear here.</p>
-      </div>
+      c.name.toLowerCase().includes(q) ||
+      c.subject.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      c.message.toLowerCase().includes(q)
     );
-  }
+  });
 
   return (
-    <div
-      className="grid gap-4 sm:grid-cols-2"
-      data-ocid="admin.complaints.list"
-    >
-      {complaints.map((c, i) => (
-        <ComplaintCard key={String(c.id)} complaint={c} index={i} />
-      ))}
+    <div>
+      {/* Search bar */}
+      <div className="mb-5 flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            placeholder="Search by name, subject, phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-900"
+            data-ocid="admin.complaints.search"
+          />
+        </div>
+        {complaints && complaints.length > 0 && (
+          <span className="text-xs text-gray-400 shrink-0">
+            {filtered.length} of {complaints.length}
+          </span>
+        )}
+      </div>
+
+      {!complaints || complaints.length === 0 ? (
+        <div
+          className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400"
+          data-ocid="admin.complaints.empty_state"
+        >
+          <Inbox size={48} strokeWidth={1.5} />
+          <p className="font-semibold text-lg">No complaints yet</p>
+          <p className="text-sm">Submitted complaints will appear here.</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400">
+          <Search size={40} strokeWidth={1.5} />
+          <p className="font-semibold text-lg">No results found</p>
+          <p className="text-sm">Try a different search term.</p>
+        </div>
+      ) : (
+        <div
+          className="grid gap-4 sm:grid-cols-2"
+          data-ocid="admin.complaints.list"
+        >
+          {filtered.map((c, i) => (
+            <ComplaintCard key={String(c.id)} complaint={c} index={i} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function LicenseApplicationsList() {
   const { actor, isFetching } = useActor();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>(
+    "all",
+  );
 
   const {
     data: applications,
@@ -444,29 +505,282 @@ function LicenseApplicationsList() {
     );
   }
 
-  if (!applications || applications.length === 0) {
+  const filtered = (applications ?? []).filter((a) => {
+    const status = ((a as any).status || "Pending") as ApplicationStatus;
+    if (statusFilter !== "all" && status !== statusFilter) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const licenceLabel = (
+        LICENCE_LABELS[a.licenceType] || a.licenceType
+      ).toLowerCase();
+      if (
+        !a.fullName.toLowerCase().includes(q) &&
+        !a.mobile.toLowerCase().includes(q) &&
+        !(a.email ?? "").toLowerCase().includes(q) &&
+        !licenceLabel.includes(q) &&
+        !a.district.toLowerCase().includes(q)
+      )
+        return false;
+    }
+    return true;
+  });
+
+  return (
+    <div>
+      {/* Search + Status filter bar */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[180px] max-w-sm">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            placeholder="Search by name, phone, licence type..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-900"
+            data-ocid="admin.applications.search"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter size={14} className="text-gray-400 shrink-0" />
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as "all" | ApplicationStatus)
+            }
+            className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-900"
+            data-ocid="admin.applications.status_filter"
+          >
+            <option value="all">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+        {applications && applications.length > 0 && (
+          <span className="text-xs text-gray-400 shrink-0">
+            {filtered.length} of {applications.length}
+          </span>
+        )}
+      </div>
+
+      {!applications || applications.length === 0 ? (
+        <div
+          className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400"
+          data-ocid="admin.applications.empty_state"
+        >
+          <Inbox size={48} strokeWidth={1.5} />
+          <p className="font-semibold text-lg">No applications yet</p>
+          <p className="text-sm">
+            Submitted licence applications will appear here.
+          </p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400">
+          <Search size={40} strokeWidth={1.5} />
+          <p className="font-semibold text-lg">No results found</p>
+          <p className="text-sm">Try adjusting your search or filter.</p>
+        </div>
+      ) : (
+        <div
+          className="grid gap-4 sm:grid-cols-2"
+          data-ocid="admin.applications.list"
+        >
+          {filtered.map((a, i) => (
+            <LicenseApplicationCard
+              key={String(a.id)}
+              application={a}
+              index={i}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrafficTab() {
+  const { actor, isFetching } = useActor();
+  const {
+    data: stats,
+    isLoading,
+    isError,
+  } = useQuery<TrafficStats>({
+    queryKey: ["trafficStats"],
+    queryFn: async () => {
+      if (!actor) throw new Error("No actor");
+      return (actor as any).getTrafficStats();
+    },
+    enabled: !!actor && !isFetching,
+    refetchInterval: 10000,
+  });
+
+  const onlineNow = stats ? Number(stats.onlineNow) : 0;
+  const totalViews = stats ? Number(stats.totalPageViews) : 0;
+  const recentViews: PageView[] = stats?.recentViews
+    ? [...stats.recentViews].sort((a, b) => Number(b.timestamp - a.timestamp))
+    : [];
+
+  if (isLoading) {
     return (
       <div
-        className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400"
-        data-ocid="admin.applications.empty_state"
+        className="flex flex-col items-center justify-center py-24 text-gray-400"
+        data-ocid="admin.traffic.loading_state"
       >
-        <Inbox size={48} strokeWidth={1.5} />
-        <p className="font-semibold text-lg">No applications yet</p>
-        <p className="text-sm">
-          Submitted licence applications will appear here.
-        </p>
+        <Loader2 size={28} className="animate-spin mb-3 text-blue-500" />
+        <p className="text-gray-500 font-medium">Loading traffic data...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center py-24 text-red-400"
+        data-ocid="admin.traffic.error_state"
+      >
+        <AlertCircle size={28} className="mb-3" />
+        <p className="font-semibold">Failed to load traffic data.</p>
       </div>
     );
   }
 
   return (
-    <div
-      className="grid gap-4 sm:grid-cols-2"
-      data-ocid="admin.applications.list"
-    >
-      {applications.map((a, i) => (
-        <LicenseApplicationCard key={String(a.id)} application={a} index={i} />
-      ))}
+    <div data-ocid="admin.traffic.panel">
+      {/* Online Now */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+        <div className="h-1 bg-green-500" />
+        <div className="p-6 flex items-center gap-5">
+          <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-green-50 shrink-0">
+            <Wifi size={28} className="text-green-600" />
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white animate-pulse" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+              Live Visitors
+            </p>
+            <p className="text-4xl font-extrabold text-gray-900 leading-none">
+              {onlineNow > 0 ? (
+                onlineNow
+              ) : (
+                <span className="text-2xl text-gray-400 font-semibold">
+                  No visitors currently online
+                </span>
+              )}
+            </p>
+            {onlineNow > 0 && (
+              <p className="text-sm text-green-600 font-medium mt-0.5">
+                {onlineNow === 1 ? "visitor" : "visitors"} online now
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+              <Globe size={18} className="text-blue-600" />
+            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Total Page Views
+            </p>
+          </div>
+          <p className="text-3xl font-extrabold text-gray-900">
+            {totalViews.toLocaleString("en-IN")}
+          </p>
+          <p className="text-xs text-gray-400 mt-0.5">All time</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
+              <Activity size={18} className="text-purple-600" />
+            </div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Recent Sessions
+            </p>
+          </div>
+          <p className="text-3xl font-extrabold text-gray-900">
+            {new Set(recentViews.map((v) => v.sessionId)).size}
+          </p>
+          <p className="text-xs text-gray-400 mt-0.5">In last 100 views</p>
+        </div>
+      </div>
+
+      {/* Recent views table */}
+      <div
+        className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+        data-ocid="admin.traffic.table"
+      >
+        <div className="h-1 bg-blue-700" />
+        <div className="p-5 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <Activity size={15} className="text-blue-600" />
+            Recent Page Views
+            <span className="ml-auto text-xs font-normal text-gray-400">
+              Auto-refreshes every 10s
+            </span>
+          </h3>
+        </div>
+        {recentViews.length === 0 ? (
+          <div
+            className="flex flex-col items-center justify-center py-16 text-gray-300"
+            data-ocid="admin.traffic.empty_state"
+          >
+            <Activity size={32} className="mb-3" />
+            <p className="font-semibold text-gray-400">
+              No page views recorded yet
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left">
+                  <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 w-10">
+                    #
+                  </th>
+                  <th className="px-4 py-2.5 text-xs font-semibold text-gray-500">
+                    Page
+                  </th>
+                  <th className="px-4 py-2.5 text-xs font-semibold text-gray-500">
+                    Session ID
+                  </th>
+                  <th className="px-4 py-2.5 text-xs font-semibold text-gray-500">
+                    Time
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentViews.map((view, i) => (
+                  <tr
+                    key={`${view.sessionId}-${i}`}
+                    className="border-t border-gray-50 hover:bg-gray-50 transition-colors"
+                    data-ocid={`admin.traffic.row.${i + 1}`}
+                  >
+                    <td className="px-4 py-2.5 text-gray-400 text-xs">
+                      {i + 1}
+                    </td>
+                    <td className="px-4 py-2.5 font-medium text-gray-800 capitalize">
+                      {view.page}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-gray-500">
+                      {view.sessionId.slice(0, 8)}…
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-gray-400">
+                      {formatTimestamp(view.timestamp)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -476,9 +790,9 @@ export default function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"complaints" | "applications">(
-    "complaints",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "complaints" | "applications" | "traffic"
+  >("complaints");
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -619,7 +933,7 @@ export default function AdminPage() {
                     Admin Dashboard
                   </h1>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    View complaints and licence applications
+                    View complaints, licence applications, and site traffic
                   </p>
                 </div>
                 <button
@@ -664,6 +978,18 @@ export default function AdminPage() {
                 >
                   Licence Applications
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("traffic")}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                    activeTab === "traffic"
+                      ? "bg-white text-blue-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  data-ocid="admin.traffic.tab"
+                >
+                  <Activity size={13} /> Traffic
+                </button>
               </div>
 
               <AnimatePresence mode="wait">
@@ -677,7 +1003,7 @@ export default function AdminPage() {
                   >
                     <ComplaintsList />
                   </motion.div>
-                ) : (
+                ) : activeTab === "applications" ? (
                   <motion.div
                     key="applications"
                     initial={{ opacity: 0, x: 8 }}
@@ -686,6 +1012,16 @@ export default function AdminPage() {
                     transition={{ duration: 0.2 }}
                   >
                     <LicenseApplicationsList />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="traffic"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <TrafficTab />
                   </motion.div>
                 )}
               </AnimatePresence>

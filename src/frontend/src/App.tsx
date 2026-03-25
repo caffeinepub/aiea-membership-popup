@@ -16,6 +16,7 @@ import ComplaintBox from "./components/ComplaintBox";
 import LicenseApplicationForm from "./components/LicenseApplicationForm";
 import LicenseGuide from "./components/LicenseGuide";
 import MembershipPopup from "./components/MembershipPopup";
+import { useActor } from "./hooks/useActor";
 
 const MEMBERSHIP_FORM_URL =
   "https://wkmwdbfw.forms.app/all-india-electrician-association-membership-form";
@@ -83,6 +84,24 @@ function useHash() {
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hash = useHash();
+  const { actor } = useActor();
+
+  useEffect(() => {
+    if (!actor || hash === "#admin") return;
+    const sessionId = (() => {
+      let id = sessionStorage.getItem("aiea_session_id");
+      if (!id) {
+        id = crypto.randomUUID();
+        sessionStorage.setItem("aiea_session_id", id);
+      }
+      return id;
+    })();
+    (actor as any).recordPageView("home", sessionId).catch(() => {});
+    const interval = setInterval(() => {
+      (actor as any).sendHeartbeat(sessionId).catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [actor, hash]);
 
   if (hash === "#admin") {
     return <AdminPage />;
