@@ -57,8 +57,8 @@ const keyDetails = [
 ];
 
 const costData = [
-  { type: "Wireman", appFee: "₹100" },
-  { type: "Supervisor", appFee: "₹200" },
+  { type: "Wireman", appFee: "₹350" },
+  { type: "Supervisor", appFee: "₹450" },
   { type: "Contractor (Class C)", appFee: "₹500" },
   { type: "Contractor (Class B)", appFee: "₹1,000" },
   { type: "Contractor (Class A)", appFee: "₹2,000" },

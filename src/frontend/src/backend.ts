@@ -330,14 +330,22 @@ export class Backend implements backendInterface {
     async submitLicenseApplication(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: ExternalBlob | null, arg9: ExternalBlob | null): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8), await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg9));
+                const [uploadedArg8, uploadedArg9] = await Promise.all([
+                    to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8),
+                    to_candid_opt_n16(this._uploadFile, this._downloadFile, arg9)
+                ]);
+                const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, uploadedArg8, uploadedArg9);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8), await to_candid_opt_n16(this._uploadFile, this._downloadFile, arg9));
+            const [uploadedArg8, uploadedArg9] = await Promise.all([
+                to_candid_opt_n16(this._uploadFile, this._downloadFile, arg8),
+                to_candid_opt_n16(this._uploadFile, this._downloadFile, arg9)
+            ]);
+            const result = await this.actor.submitLicenseApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, uploadedArg8, uploadedArg9);
             return result;
         }
     }

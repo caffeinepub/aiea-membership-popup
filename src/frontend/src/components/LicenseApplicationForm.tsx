@@ -84,6 +84,7 @@ export default function LicenseApplicationForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
   const handleInput = (key: string, value: string) => {
@@ -135,6 +136,7 @@ export default function LicenseApplicationForm() {
     }
 
     setSubmitting(true);
+    setUploadingFiles(true);
 
     try {
       let photo: ExternalBlob | null = null;
@@ -150,6 +152,8 @@ export default function LicenseApplicationForm() {
           new Uint8Array(await paymentFile.arrayBuffer()),
         );
       }
+
+      setUploadingFiles(false);
 
       await actor.submitLicenseApplication(
         form.fullName,
@@ -172,6 +176,7 @@ export default function LicenseApplicationForm() {
       );
     } finally {
       setSubmitting(false);
+      setUploadingFiles(false);
     }
   };
 
@@ -711,21 +716,33 @@ export default function LicenseApplicationForm() {
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-6 text-base font-bold rounded-xl"
-            style={{ background: submitting ? undefined : "#1d4ed8" }}
-            data-ocid="apply_licence.submit_button"
-          >
-            {submitting ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={18} className="animate-spin" /> Submitting...
-              </span>
-            ) : (
-              "Submit Application"
+          <div className="space-y-2">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-6 text-base font-bold rounded-xl"
+              style={{ background: submitting ? undefined : "#1d4ed8" }}
+              data-ocid="apply_licence.submit_button"
+            >
+              {uploadingFiles ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={18} className="animate-spin" /> Uploading
+                  files...
+                </span>
+              ) : submitting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={18} className="animate-spin" /> Submitting...
+                </span>
+              ) : (
+                "Submit Application"
+              )}
+            </Button>
+            {submitting && (
+              <p className="text-xs text-gray-500 text-center">
+                This may take a moment while your documents are being uploaded.
+              </p>
             )}
-          </Button>
+          </div>
         </form>
       </div>
     </section>
