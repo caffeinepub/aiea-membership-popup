@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
+  Download,
   Eye,
   EyeOff,
   Filter,
@@ -156,6 +157,7 @@ function LicenseApplicationCard({
   const { actor } = useActor();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   const photoUrl = application.photo ? application.photo.getDirectURL() : null;
   const paymentScreenshotBlob = (application as any).paymentScreenshot;
@@ -182,6 +184,39 @@ function LicenseApplicationCard({
       });
     } finally {
       setUpdating(false);
+    }
+  }
+
+  async function handleDownloadAll() {
+    setDownloadingAll(true);
+    try {
+      const downloads: { url: string; filename: string }[] = [];
+      if (photoUrl) {
+        downloads.push({
+          url: photoUrl,
+          filename: `applicant-${application.fullName}-passport.jpg`,
+        });
+      }
+      if (paymentScreenshotUrl) {
+        downloads.push({
+          url: paymentScreenshotUrl,
+          filename: `applicant-${application.fullName}-payment.jpg`,
+        });
+      }
+      for (const { url, filename } of downloads) {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+      }
+    } finally {
+      setDownloadingAll(false);
     }
   }
 
@@ -328,6 +363,25 @@ function LicenseApplicationCard({
             <p className="text-xs text-gray-400 italic flex items-center gap-1">
               <CreditCard size={11} /> No payment screenshot uploaded
             </p>
+          )}
+
+          {(photoUrl || paymentScreenshotUrl) && (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <button
+                type="button"
+                data-ocid="admin.application.download_button"
+                onClick={handleDownloadAll}
+                disabled={downloadingAll}
+                className="w-full border border-blue-600 text-blue-700 hover:bg-blue-50 rounded-lg py-2 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {downloadingAll ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Download size={15} />
+                )}
+                {downloadingAll ? "Downloading..." : "Download All Documents"}
+              </button>
+            </div>
           )}
         </div>
       </div>
