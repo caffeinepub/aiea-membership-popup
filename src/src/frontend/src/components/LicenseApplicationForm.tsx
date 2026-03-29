@@ -162,6 +162,20 @@ export default function LicenseApplicationForm() {
         );
       }
 
+      let aadhaarCard: ExternalBlob | null = null;
+      if (files.aadhaar) {
+        aadhaarCard = ExternalBlob.fromBytes(
+          new Uint8Array(await files.aadhaar.arrayBuffer()),
+        );
+      }
+
+      let ageProof: ExternalBlob | null = null;
+      if (files.ageProof) {
+        ageProof = ExternalBlob.fromBytes(
+          new Uint8Array(await files.ageProof.arrayBuffer()),
+        );
+      }
+
       await (actor as any).submitLicenseApplication(
         form.fullName,
         form.mobile,
@@ -173,6 +187,8 @@ export default function LicenseApplicationForm() {
         form.state,
         photo,
         paymentScreenshot,
+        aadhaarCard,
+        ageProof,
       );
 
       setSubmitted(true);

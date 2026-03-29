@@ -160,6 +160,10 @@ function LicenseApplicationCard({
   const paymentScreenshotUrl = paymentScreenshotBlob
     ? paymentScreenshotBlob.getDirectURL()
     : null;
+  const aadhaarBlob = (application as any).aadhaarCard;
+  const aadhaarUrl = aadhaarBlob ? aadhaarBlob.getDirectURL() : null;
+  const ageProofBlob = (application as any).ageProof;
+  const ageProofUrl = ageProofBlob ? ageProofBlob.getDirectURL() : null;
   const licenceLabel =
     LICENCE_LABELS[application.licenceType] || application.licenceType;
 
@@ -325,6 +329,66 @@ function LicenseApplicationCard({
           ) : (
             <p className="text-xs text-gray-400 italic flex items-center gap-1">
               <CreditCard size={11} /> No payment screenshot uploaded
+            </p>
+          )}
+        </div>
+
+        {/* Aadhaar Card */}
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          {aadhaarUrl ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1">
+                <ImageIcon size={11} /> Aadhaar Card
+              </p>
+              <a href={aadhaarUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={aadhaarUrl}
+                  alt="Aadhaar card"
+                  className="w-full rounded-xl border border-gray-200 object-contain hover:opacity-90 transition-opacity cursor-pointer"
+                  style={{ maxHeight: 200 }}
+                />
+              </a>
+              <a
+                href={aadhaarUrl}
+                download
+                className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+              >
+                Download Aadhaar Card
+              </a>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic flex items-center gap-1">
+              <ImageIcon size={11} /> No Aadhaar card uploaded
+            </p>
+          )}
+        </div>
+
+        {/* Age Proof / Birth Certificate */}
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          {ageProofUrl ? (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1">
+                <ImageIcon size={11} /> Age Proof / Birth Certificate
+              </p>
+              <a href={ageProofUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={ageProofUrl}
+                  alt="Age proof"
+                  className="w-full rounded-xl border border-gray-200 object-contain hover:opacity-90 transition-opacity cursor-pointer"
+                  style={{ maxHeight: 200 }}
+                />
+              </a>
+              <a
+                href={ageProofUrl}
+                download
+                className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+              >
+                Download Age Proof
+              </a>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic flex items-center gap-1">
+              <ImageIcon size={11} /> No age proof / birth certificate uploaded
             </p>
           )}
         </div>

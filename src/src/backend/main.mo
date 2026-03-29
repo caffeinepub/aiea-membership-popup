@@ -90,7 +90,7 @@ actor {
   };
 
   // Status stored separately to avoid stable migration errors
-  // Returns type exposed to frontend (includes status and paymentScreenshot)
+  // Returns type exposed to frontend (includes status, paymentScreenshot, aadhaarCard, ageProof)
   type LicenseApplication = {
     id : Nat;
     fullName : Text;
@@ -105,14 +105,18 @@ actor {
     photo : ?Storage.ExternalBlob;
     status : Text;
     paymentScreenshot : ?Storage.ExternalBlob;
+    aadhaarCard : ?Storage.ExternalBlob;
+    ageProof : ?Storage.ExternalBlob;
   };
 
   var nextLicenseId = 0;
   let licenseApplications = Map.empty<Nat, LicenseApplicationStored>();
   let licenseApplicationStatuses = Map.empty<Nat, Text>();
   let licensePaymentScreenshots = Map.empty<Nat, Storage.ExternalBlob>();
+  let licenseAadhaarCards = Map.empty<Nat, Storage.ExternalBlob>();
+  let licenseAgeProofs = Map.empty<Nat, Storage.ExternalBlob>();
 
-  public shared ({ caller }) func submitLicenseApplication(fullName : Text, mobile : Text, email : Text, dob : Text, licenceType : Text, address : Text, district : Text, state : Text, photo : ?Storage.ExternalBlob, paymentScreenshot : ?Storage.ExternalBlob) : async Nat {
+  public shared ({ caller }) func submitLicenseApplication(fullName : Text, mobile : Text, email : Text, dob : Text, licenceType : Text, address : Text, district : Text, state : Text, photo : ?Storage.ExternalBlob, paymentScreenshot : ?Storage.ExternalBlob, aadhaarCard : ?Storage.ExternalBlob, ageProof : ?Storage.ExternalBlob) : async Nat {
     let applicationId = nextLicenseId;
     let application : LicenseApplicationStored = {
       id = applicationId;
@@ -133,6 +137,14 @@ actor {
       case (?ps) { licensePaymentScreenshots.add(applicationId, ps); };
       case null {};
     };
+    switch (aadhaarCard) {
+      case (?ac) { licenseAadhaarCards.add(applicationId, ac); };
+      case null {};
+    };
+    switch (ageProof) {
+      case (?ap) { licenseAgeProofs.add(applicationId, ap); };
+      case null {};
+    };
     nextLicenseId += 1;
     applicationId;
   };
@@ -145,6 +157,8 @@ actor {
         case null { "Pending" };
       };
       let paymentScreenshot = licensePaymentScreenshots.get(app.id);
+      let aadhaarCard = licenseAadhaarCards.get(app.id);
+      let ageProof = licenseAgeProofs.get(app.id);
       result.add({
         id = app.id;
         fullName = app.fullName;
@@ -159,6 +173,8 @@ actor {
         photo = app.photo;
         status;
         paymentScreenshot;
+        aadhaarCard;
+        ageProof;
       });
     };
     result.toArray();
